@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuiz Sains Tingkatan 3: Stimulus and Responses</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --primary-dark: #357ABD;
+            --secondary-color: #FF9F43;
+            --success-color: #2ECC71;
+            --error-color: #EE5253;
+            --warning-color: #FFC107;
+            --bg-color: #EBF4F6;
+            --card-bg: #FFFFFF;
+            --text-color: #2D3436;
+            --text-muted: #636E72;
+            --border-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Canvas Konfeti */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .quiz-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 680px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            padding: 25px;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 3px dashed #DFE4EA;
+            padding-bottom: 15px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Screen Toggle */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #DFE4EA;
+            border-radius: 10px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Header Info & Timer */
+        .quiz-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        .timer-badge {
+            background-color: #F0F3F6;
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .timer-badge.warning {
+            background-color: #FFEAA7;
+            color: #D63031;
+            animation: pulse 0.6s infinite alternate;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #E4E7EB;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Question Box */
+        .question-box {
+            margin-bottom: 20px;
+            background-color: #F8F9FA;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .question-text-en {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .question-text-ms {
+            font-size: 0.95rem;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        /* Options */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background-color: #FFFFFF;
+            border: 2px solid #E9ECEF;
+            border-radius: 10px;
+            padding: 12px 15px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: var(--primary-color);
+            background-color: #EDF5FF;
+        }
+
+        .option-btn .opt-en {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .option-btn .opt-ms {
+            font-size: 0.85rem;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        .option-btn.correct {
+            background-color: #D4EDDA !important;
+            border-color: var(--success-color) !important;
+        }
+
+        .option-btn.wrong {
+            background-color: #F8D7DA !important;
+            border-color: var(--error-color) !important;
+        }
+
+        /* Feedback Box */
+        .feedback-box {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .feedback-box.correct {
+            background-color: #D4EDDA;
+            color: #155724;
+            border: 1px solid #C3E6CB;
+        }
+
+        .feedback-box.wrong {
+            background-color: #F8D7DA;
+            color: #721C24;
+            border: 1px solid #F5C6CB;
+        }
+
+        .feedback-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 1.05rem;
+        }
+
+        .explanation {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Result Screen & Badges */
+        .result-box {
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .score-badge {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 15px auto;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+        .score-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .score-percentage {
+            font-size: 0.9rem;
+        }
+
+        .badge-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+        }
+
+        .reward-badge-container {
+            margin: 15px 0;
+            display: none;
+        }
+
+        .reward-badge-container.show {
+            display: block;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .badge-icon {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 8px auto;
+        }
+
+        .badge-label {
+            display: inline-block;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #5A3E00;
+            font-weight: bold;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4);
+        }
+
+        .result-details {
+            background-color: #F8F9FA;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-size: 0.95rem;
+            border: 1px solid #E9ECEF;
+        }
+
+        .result-details p {
+            margin-bottom: 8px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 480px) {
+            .quiz-container {
+                padding: 18px;
+            }
+            h1 {
+                font-size: 1.3rem;
+            }
+            h2 {
+                font-size: 0.95rem;
+            }
+            .question-text-en {
+                font-size: 1rem;
+            }
+            .option-btn {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div class="quiz-container">
+    <header>
+        <h1>Science Form 3 / Sains Tingkatan 3</h1>
+        <h2>Stimulus and Responses / Rangsangan dan Gerak Balas</h2>
+    </header>
+
+    <!-- 1. Skrin Pendaftaran Murid -->
+    <div id="start-screen" class="screen active">
+        <div class="form-group">
+            <label for="student-name">Student's Name / Nama Murid:</label>
+            <input type="text" id="student-name" placeholder="E.g. Ahmad Ali" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label for="student-class">Class / Kelas:</label>
+            <input type="text" id="student-class" placeholder="E.g. 3 Cerdik" autocomplete="off">
+        </div>
+        <p id="error-msg" style="color: var(--error-color); font-size: 0.85rem; display: none; margin-bottom: 15px; text-align: center;">
+            Please complete all details! / Sila lengkapkan semua butiran!
+        </p>
+        <button class="btn" onclick="startQuiz()">Start Quiz / Mula Kuiz</button>
+    </div>
+
+    <!-- 2. Skrin Soalan Kuiz -->
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-top-bar">
+            <span id="question-count">Question 1/15</span>
+            <div id="timer-badge" class="timer-badge">
+                ⏱️ <span id="timer-sec">30</span>s
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+
+        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px;">
+            <strong id="student-display-info"></strong>
+        </div>
+
+        <div class="question-box">
+            <div id="q-text-en" class="question-text-en"></div>
+            <div id="q-text-ms" class="question-text-ms"></div>
+        </div>
+
+        <div id="options-container" class="options-container"></div>
+
+        <div id="feedback-box" class="feedback-box">
+            <div id="feedback-title" class="feedback-title"></div>
+            <div id="explanation" class="explanation"></div>
+        </div>
+
+        <button id="next-btn" class="btn" onclick="nextQuestion()" style="display: none;">Next Question / Soalan Seterusnya</button>
+    </div>
+
+    <!-- 3. Skrin Keputusan Kuiz -->
+    <div id="result-screen" class="screen">
+        <div class="result-box">
+            <div class="score-badge">
+                <span id="score-num" class="score-number">0/15</span>
+                <span id="score-pct" class="score-percentage">0%</span>
+            </div>
+            
+            <div id="badge-title" class="badge-title">Excellent!</div>
+
+            <!-- Lencana Anugerah 80%+ -->
+            <div id="reward-badge" class="reward-badge-container">
+                <svg class="badge-icon" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="#FFD700" stroke="#FFA500" stroke-width="4"/>
+                    <polygon points="50,15 63,38 88,42 70,60 74,85 50,73 26,85 30,60 12,42 37,38" fill="#FFF" stroke="#FF8C00" stroke-width="2"/>
+                    <circle cx="50" cy="50" r="20" fill="#FF8C00"/>
+                    <text x="50" y="56" font-size="18" font-weight="bold" fill="#FFF" text-anchor="middle">★</text>
+                </svg>
+                <br>
+                <span class="badge-label">🏆 Anugerah Pakar Sains (Science Master Badge)</span>
+            </div>
+            
+            <div class="result-details">
+                <p><strong>Name / Nama:</strong> <span id="res-name">-</span></p>
+                <p><strong>Class / Kelas:</strong> <span id="res-class">-</span></p>
+                <p><strong>Correct Answers / Jawapan Betul:</strong> <span id="res-correct">0</span> / 15</p>
+                <p><strong>Achievement Level / Tahap Pencapaian:</strong> <br><span id="res-level" style="font-weight: bold; color: var(--primary-color);">-</span></p>
+            </div>
+
+            <button class="btn" onclick="restartQuiz()">Try Again / Cuba Lagi</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Database 15 Soalan Sains Tingkatan 3 (Stimulus and Responses)
+    const masterQuizData = [
+        {
+            en: "1. Which part of the human nervous system consists of the brain and spinal cord?",
+            ms: "1. Bahagian sistem saraf manusia manakah yang terdiri daripada otak dan saraf tunjang?",
+            options: [
+                { en: "Peripheral nervous system", ms: "Sistem saraf periferi" },
+                { en: "Central nervous system", ms: "Sistem saraf pusat" },
+                { en: "Autonomic nervous system", ms: "Sistem saraf autonomik" },
+                { en: "Somatic nervous system", ms: "Sistem saraf somatik" }
+            ],
+            answer: 1,
+            expEn: "The central nervous system consists of the brain and spinal cord to process information.",
+            expMs: "Sistem saraf pusat terdiri daripada otak dan saraf tunjang untuk memproses maklumat."
+        },
+        {
+            en: "2. Which of the following is an example of a voluntary action?",
+            ms: "2. Antara berikut, yang manakah contoh tindakan terkawal?",
+            options: [
+                { en: "Heartbeat", ms: "Denyutan jantung" },
+                { en: "Peristalsis in esophagus", ms: "Peristalsis dalam esofagus" },
+                { en: "Writing notes", ms: "Menulis nota" },
+                { en: "Sneezing due to dust", ms: "Bersin disebabkan habuk" }
+            ],
+            answer: 2,
+            expEn: "Writing is a voluntary action controlled consciously by the cerebral cortex.",
+            expMs: "Menulis ialah tindakan terkawal yang dikawal secara sedar oleh otak."
+        },
+        {
+            en: "3. Which type of photoreceptor cells on the retina are responsible for color vision in bright light?",
+            ms: "3. Apakah jenis sel fotoreseptor pada retina yang bertanggungjawab untuk penglihatan warna dalam cahaya terang?",
+            options: [
+                { en: "Rod cells", ms: "Sel rod" },
+                { en: "Cone cells", ms: "Sel kon" },
+                { en: "Bipolar cells", ms: "Sel dwikutub" },
+                { en: "Sensory nerve cells", ms: "Sel saraf deria" }
+            ],
+            answer: 1,
+            expEn: "Cone cells detect red, green, and blue light under bright conditions. Rod cells detect light intensity in dim light.",
+            expMs: "Sel kon mengesan warna cahaya (merah, hijau, biru) dalam keadaan terang. Sel rod peka kepada keamatan cahaya dalam keadaan redup."
+        },
+        {
+            en: "4. Which receptor in the human skin detects changes in ambient temperature?",
+            ms: "4. Reseptor manakah pada kulit manusia yang mengesan perubahan suhu persekitaran?",
+            options: [
+                { en: "Pain receptor", ms: "Reseptor kesakitan" },
+                { en: "Touch receptor", ms: "Reseptor sentuhan" },
+                { en: "Thermoreceptors", ms: "Reseptor suhu" },
+                { en: "Pressure receptor", ms: "Reseptor tekanan" }
+            ],
+            answer: 2,
+            expEn: "Thermoreceptors in the dermis layer respond to heat and cold stimuli.",
+            expMs: "Reseptor suhu pada lapisan dermis bergerak balas terhadap rangsangan panas dan sejuk."
+        },
+        {
+            en: "5. Where are sensory olfactory cells located inside the human body?",
+            ms: "5. Di manakah sel-sel deria olfaktori terletak dalam badan manusia?",
+            options: [
+                { en: "Roof of the nasal cavity", ms: "Bahagian atas rongga hidung" },
+                { en: "Surface of the tongue", ms: "Permukaan lidah" },
+                { en: "Inner ear canal", ms: "Salur telinga dalam" },
+                { en: "Retina of the eye", ms: "Retina mata" }
+            ],
+            answer: 0,
+            expEn: "Olfactory sensory cells are located at the roof of the nasal cavity to detect chemical vapor stimuli.",
+            expMs: "Sel olfaktori terletak di bahagian atas rongga hidung untuk mengesan bahan kimia berwap."
+        },
+        {
+            en: "6. Which small bones in the middle ear function to amplify sound vibrations?",
+            ms: "6. Tulang kecil manakah di telinga tengah yang berfungsi membesarkan getaran bunyi?",
+            options: [
+                { en: "Eardrum", ms: "Gendang telinga" },
+                { en: "Auditory nerve", ms: "Saraf pendengaran" },
+                { en: "Ossicles (Hammer, Anvil, Stirrup)", ms: "Tulang osikel (Tukul, Landasan, Sanggurdi)" },
+                { en: "Cochlea", ms: "Koklea" }
+            ],
+            answer: 2,
+            expEn: "The three ossicle bones amplify vibrations from the eardrum and transmit them to the oval window.",
+            expMs: "Tiga tulang osikel menguatkan getaran daripada gendang telinga dan memindahkannya ke tingkap bujur."
+        },
+        {
+            en: "7. Why does an optical illusion occur in human vision?",
+            ms: "7. Mengapakah ilusi optik berlaku dalam penglihatan manusia?",
+            options: [
+                { en: "Damage to the optic nerve", ms: "Kerosakan pada saraf optik" },
+                { en: "Light rays focused behind the retina", ms: "Sinar cahaya terfokus di belakang retina" },
+                { en: "The brain misinterprets visual stimuli", ms: "Otak tersalah mentafsir rangsangan penglihatan" },
+                { en: "Uneven curvature of the cornea", ms: "Kelengkungan kornea yang tidak sekata" }
+            ],
+            answer: 2,
+            expEn: "Optical illusions occur when the brain fails to interpret visual stimuli accurately due to surrounding distractions.",
+            expMs: "Ilusi optik berlaku apabila otak gagal mentafsir rangsangan penglihatan dengan tepat disebabkan gangguan persekitaran."
+        },
+        {
+            en: "8. What visual defect occurs when light focuses in front of the retina, and which lens corrects it?",
+            ms: "8. Apakah kecacatan penglihatan yang berlaku apabila cahaya difokuskan di hadapan retina, dan kanta apakah yang membetulkannya?",
+            options: [
+                { en: "Myopia; Concave lens", ms: "Miopia; Kanta cekung" },
+                { en: "Long-sightedness; Convex lens", ms: "Rabun dekat; Kanta cembung" },
+                { en: "Astigmatism; Cylindrical lens", ms: "Astigmatisme; Kanta silinder" },
+                { en: "Cataract; Convex lens", ms: "Katarak; Kanta cembung" }
+            ],
+            answer: 0,
+            expEn: "Short-sightedness (myopia) is corrected using concave lenses to diverge light rays onto the retina.",
+            expMs: "Rabun jauh (miopia) dibetulkan dengan kanta cekung untuk mencapahkan cahaya tepat pada retina."
+        },
+        {
+            en: "9. Why is stereoscopic vision advantageous for predator animals?",
+            ms: "9. Mengapakah penglihatan stereoskopik memberi kelebihan kepada haiwan pemangsa?",
+            options: [
+                { en: "Provides a wider field of view to spot enemies", ms: "Memberikan medan penglihatan luas untuk mengesan musuh" },
+                { en: "Allows accurate estimation of distance and depth to hunt prey", ms: "Membolehkan anggaran jarak dan kedalaman yang tepat untuk memburu mangsa" },
+                { en: "Helps to see clearly in complete darkness", ms: "Membantu melihat dengan jelas dalam kegelapan" },
+                { en: "Prevents blindness in bright sunlight", ms: "Elak kebutaan dalam cahaya matahari terang" }
+            ],
+            answer: 1,
+            expEn: "Stereoscopic vision uses two overlapping fields of view to create 3D perception for distance calculation.",
+            expMs: "Penglihatan stereoskopik menggunakan dua medan penglihatan bertindih untuk menghasilkan imej 3D bagi menganggar jarak."
+        },
+        {
+            en: "10. Plant shoots grow towards a light source. This response is known as:",
+            ms: "10. Pucuk tumbuhan tumbuh ke arah sumber cahaya. Gerak balas ini dikenali sebagai:",
+            options: [
+                { en: "Positive geotropism", ms: "Geotropisme positif" },
+                { en: "Positive phototropism", ms: "Fototropisme positif" },
+                { en: "Negative phototropism", ms: "Fototropisme negatif" },
+                { en: "Positive hydrotropism", ms: "Hidrotropisme positif" }
+            ],
+            answer: 1,
+            expEn: "Growth of plant parts towards light is called positive phototropism.",
+            expMs: "Pertumbuhan bahagian tumbuhan ke arah cahaya dipanggil fototropisme positif."
+        },
+        {
+            en: "11. Roots of plants grow downwards in the direction of gravity. What tropism is this?",
+            ms: "11. Akar tumbuhan tumbuh ke bawah mengikut arah tarikan graviti. Apakah tropisme ini?",
+            options: [
+                { en: "Positive geotropism", ms: "Geotropisme positif" },
+                { en: "Negative geotropism", ms: "Geotropisme negatif" },
+                { en: "Thigmotropism", ms: "Tigmotropisme" },
+                { en: "Hydrotropism", ms: "Hidrotropisme" }
+            ],
+            answer: 0,
+            expEn: "Roots grow towards gravity pull (positive geotropism) to anchor the plant firmly in soil.",
+            expMs: "Akar tumbuh mengikut arah graviti (geotropisme positif) untuk mencengkam tanah dengan kukuh."
+        },
+        {
+            en: "12. The rapid folding of Mimosa pudica leaves upon touch is an example of:",
+            ms: "12. Daun pokok semalu (Mimosa pudica) menguncup dengan pantas apabila disentuh. Ini ialah contoh:",
+            options: [
+                { en: "Tropism movement", ms: "Pergerakan tropisme" },
+                { en: "Nastic movement", ms: "Pergerakan nastik" },
+                { en: "Geotropism movement", ms: "Pergerakan geotropisme" },
+                { en: "Phototropism movement", ms: "Pergerakan fototropisme" }
+            ],
+            answer: 1,
+            expEn: "Nastic movement is a quick plant response independent of the direction of the stimulus.",
+            expMs: "Pergerakan nastik ialah gerak balas pantas tumbuhan yang tidak bergantung pada arah rangsangan."
+        },
+        {
+            en: "13. Prey animals like rabbits and deer mostly possess which type of vision?",
+            ms: "13. Haiwan mangsa seperti arnab dan rusa biasanya mempunyai jenis penglihatan yang mana?",
+            options: [
+                { en: "Stereoscopic vision", ms: "Penglihatan stereoskopik" },
+                { en: "Monocular vision", ms: "Penglihatan monokular" },
+                { en: "Wide-angle vision", ms: "Penglihatan sudut luas" },
+                { en: "Night vision", ms: "Penglihatan malam" }
+            ],
+            answer: 1,
+            expEn: "Monocular vision provides prey animals with a wide field of view to detect predators from almost all directions.",
+            expMs: "Penglihatan monokular memberi haiwan mangsa medan penglihatan yang luas untuk mengesan pemangsa dari pelbagai arah."
+        },
+        {
+            en: "14. Which inner ear structure is responsible for detecting head movement and maintaining balance?",
+            ms: "14. Struktur telinga dalam manakah yang mengesan pergerakan kepala dan mengekalkan keseimbangan badan?",
+            options: [
+                { en: "Cochlea", ms: "Koklea" },
+                { en: "Eardrum", ms: "Gendang telinga" },
+                { en: "Semi-circular canals", ms: "Salur separuh bulat" },
+                { en: "Eustachian tube", ms: "Tiub Eustachio" }
+            ],
+            answer: 2,
+            expEn: "The semi-circular canals contain endolymph fluid and receptor cells to control body balance.",
+            expMs: "Salur separuh bulat mengandungi cecair endolimfa dan sel reseptor untuk mengawal keseimbangan badan."
+        },
+        {
+            en: "15. How do taste buds and olfactory cells work together when eating?",
+            ms: "15. Bagaimanakah tunas rasa dan sel olfaktori bekerjasama semasa makan?",
+            options: [
+                { en: "Smell blocks taste signals completely", ms: "Deria bau menghalang isyarat rasa sepenuhnya" },
+                { en: "Taste and smell signals combine in the brain to perceive flavour", ms: "Isyarat rasa dan bau bergabung di otak untuk mentafsir rasa makanan" },
+                { en: "Taste buds can function normally without smell", ms: "Tunas rasa boleh berfungsi normal tanpa deria bau" },
+                { en: "Smell only measures food temperature", ms: "Deria bau hanya mengukur suhu makanan" }
+            ],
+            answer: 1,
+            expEn: "Flavour perception combines chemical signals from taste buds on the tongue and olfactory cells in the nose.",
+            expMs: "Persepsi rasa makanan menggabungkan isyarat kimia daripada tunas rasa pada lidah dan sel olfaktori dalam hidung."
+        }
+    ];
+
+    // Variables Keadaan (State)
+    let currentQuizQuestions = [];
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let studentName = "";
+    let studentClass = "";
+    let answered = false;
+
+    // Pemasa
+    let timerInterval = null;
+    const QUESTION_TIME_LIMIT = 30; // 30 saat per soalan
+    let timeLeft = QUESTION_TIME_LIMIT;
+
+    // Web Audio API Synth (Tanpa fail luar)
+    // ================================
+    // TETAPAN GOOGLE SHEETS
+    // Tampal URL Web App Google Apps Script anda di bawah.
+    // ================================
+    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycbytjgj3ZWiTmx3u3dUgzIx0wbAYh8FrysvHhgWJDOCXavmV7Y6gKqqdKjJ0My7w6GY/exec";
+    let audioCtx = null;
+
+    function initAudio() {
+        if (!audioCtx) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                audioCtx = new AudioContext();
+            }
+        }
+    }
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        try {
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                osc.start(now);
+                osc.stop(now + 0.45);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now); // A3
+                osc.frequency.setValueAtTime(164.81, now + 0.15); // E3
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'tick') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(750, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'win') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(freq, now + i * 0.12);
+                    g.gain.setValueAtTime(0.2, now + i * 0.12);
+                    g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.3);
+                    o.start(now + i * 0.12);
+                    o.stop(now + i * 0.12 + 0.3);
+                });
+            }
+        } catch(e) {
+            console.log("Audio play error", e);
+        }
+    }
+
+    // Canvas Konfeti Animasi (Tanpa pustaka luar)
+    function launchConfetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ['#4A90E2', '#FF9F43', '#2ECC71', '#EE5253', '#FFD700', '#9B59B6'];
+
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                size: Math.random() * 8 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                vy: Math.random() * 3 + 2,
+                vx: Math.random() * 2 - 1,
+                rot: Math.random() * 360,
+                rotSpeed: Math.random() * 6 - 3
+            });
+        }
+
+        let duration = 180; // ~3 saat
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.y += p.vy;
+                p.x += p.vx;
+                p.rot += p.rotSpeed;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rot * Math.PI) / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.restore();
+            });
+
+            duration--;
+            if (duration > 0) {
+                requestAnimationFrame(animate);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+        animate();
+    }
+
+    // Fungsi Pengacak (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    // Sediakan Soalan & Pilihan Jawapan Yang Dirawakkan
+    function prepareQuestions() {
+        const shuffledQ = shuffleArray(masterQuizData);
+
+        return shuffledQ.map(q => {
+            const correctOption = q.options[q.answer];
+            const shuffledOptions = shuffleArray(q.options);
+            const newAnswerIndex = shuffledOptions.findIndex(opt => opt.en === correctOption.en);
+
+            return {
+                ...q,
+                options: shuffledOptions,
+                answer: newAnswerIndex
+            };
+        });
+    }
+
+    // Element DOM
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+
+    const inputName = document.getElementById('student-name');
+    const inputClass = document.getElementById('student-class');
+    const errorMsg = document.getElementById('error-msg');
+
+    const questionCountText = document.getElementById('question-count');
+    const studentDisplayInfo = document.getElementById('student-display-info');
+    const progressFill = document.getElementById('progress-fill');
+    const timerSec = document.getElementById('timer-sec');
+    const timerBadge = document.getElementById('timer-badge');
+
+    const qTextEn = document.getElementById('q-text-en');
+    const qTextMs = document.getElementById('q-text-ms');
+    const optionsContainer = document.getElementById('options-container');
+
+    const feedbackBox = document.getElementById('feedback-box');
+    const feedbackTitle = document.getElementById('feedback-title');
+    const explanationText = document.getElementById('explanation');
+    const nextBtn = document.getElementById('next-btn');
+
+    // Mula Kuiz
+    function startQuiz() {
+        initAudio();
+        studentName = inputName.value.trim();
+        studentClass = inputClass.value.trim();
+
+        if (!studentName || !studentClass) {
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        errorMsg.style.display = 'none';
+        startScreen.classList.remove('active');
+        quizScreen.classList.add('active');
+
+        studentDisplayInfo.textContent = `Student / Murid: ${studentName} (${studentClass})`;
+        
+        // Sediakan soalan baru yang dirawakkan
+        currentQuizQuestions = prepareQuestions();
+        currentQuestionIndex = 0;
+        score = 0;
+        
+        loadQuestion();
+    }
+
+    // Muat Soalan
+    function loadQuestion() {
+        answered = false;
+        clearInterval(timerInterval);
+
+        feedbackBox.style.display = 'none';
+        nextBtn.style.display = 'none';
+
+        const q = currentQuizQuestions[currentQuestionIndex];
+        
+        // Update Progress Bar & Tajuk
+        questionCountText.textContent = `Question ${currentQuestionIndex + 1} / ${currentQuizQuestions.length}`;
+        const pct = ((currentQuestionIndex + 1) / currentQuizQuestions.length) * 100;
+        progressFill.style.width = `${pct}%`;
+
+        // Papar Teks Soalan
+        qTextEn.textContent = q.en;
+        qTextMs.textContent = q.ms;
+
+        // Papar Pilihan Jawapan
+        optionsContainer.innerHTML = '';
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `
+                <span class="opt-en">${String.fromCharCode(65 + idx)}. ${opt.en}</span>
+                <span class="opt-ms">${opt.ms}</span>
+            `;
+            btn.onclick = () => selectOption(idx);
+            optionsContainer.appendChild(btn);
+        });
+
+        // Mula Pemasa 30 Saat
+        startTimer();
+    }
+
+    // Pengurusan Pemasa
+    function startTimer() {
+        timeLeft = QUESTION_TIME_LIMIT;
+        timerSec.textContent = timeLeft;
+        timerBadge.classList.remove('warning');
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timerSec.textContent = timeLeft;
+
+            if (timeLeft <= 5 && timeLeft > 0) {
+                timerBadge.classList.add('warning');
+                playSound('tick');
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                handleTimeout();
+            }
+        }, 1000);
+    }
+
+    // Masa Tamat (Timeout)
+    function handleTimeout() {
+        if (answered) return;
+        answered = true;
+
+        playSound('wrong');
+
+        const q = currentQuizQuestions[currentQuestionIndex];
+        const buttons = optionsContainer.children;
+
+        // Tandakan jawapan betul
+        buttons[q.answer].classList.add('correct');
+
+        // Nyahdayakan semua pilihan
+        for (let btn of buttons) {
+            btn.disabled = true;
+        }
+
+        // Papar Maklum Balas Masa Tamat
+        feedbackBox.className = 'feedback-box wrong';
+        feedbackTitle.textContent = "Time's Up! / Masa Tamat! ⏰";
+        explanationText.innerHTML = `
+            <strong>EN:</strong> ${q.expEn}<br>
+            <strong>MS:</strong> ${q.expMs}
+        `;
+        feedbackBox.style.display = 'block';
+
+        showNextButton();
+    }
+
+    // Pilih Jawapan
+    function selectOption(selectedIndex) {
+        if (answered) return;
+        answered = true;
+        clearInterval(timerInterval);
+
+        const q = currentQuizQuestions[currentQuestionIndex];
+        const buttons = optionsContainer.children;
+
+        if (selectedIndex === q.answer) {
+            score++;
+            playSound('correct');
+            buttons[selectedIndex].classList.add('correct');
+            feedbackBox.className = 'feedback-box correct';
+            feedbackTitle.textContent = 'Correct! / Betul! 🎉';
+        } else {
+            playSound('wrong');
+            buttons[selectedIndex].classList.add('wrong');
+            buttons[q.answer].classList.add('correct');
+            feedbackBox.className = 'feedback-box wrong';
+            feedbackTitle.textContent = 'Incorrect! / Salah! ❌';
+        }
+
+        explanationText.innerHTML = `
+            <strong>EN:</strong> ${q.expEn}<br>
+            <strong>MS:</strong> ${q.expMs}
+        `;
+        feedbackBox.style.display = 'block';
+
+        // Nyahdayakan pilihan
+        for (let btn of buttons) {
+            btn.disabled = true;
+        }
+
+        showNextButton();
+    }
+
+    function showNextButton() {
+        if (currentQuestionIndex < currentQuizQuestions.length - 1) {
+            nextBtn.textContent = "Next Question / Soalan Seterusnya";
+        } else {
+            nextBtn.textContent = "View Results / Lihat Keputusan";
+        }
+        nextBtn.style.display = 'block';
+    }
+
+    // Soalan Seterusnya
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < currentQuizQuestions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    // Hantar keputusan ke Google Sheets
+    function sendResultToGoogleSheets(percentage, levelText) {
+        if (!GOOGLE_SHEETS_URL || GOOGLE_SHEETS_URL.includes("TAMPAL_URL")) {
+            console.warn("URL Google Apps Script belum ditetapkan.");
+            return;
+        }
+
+        const resultData = {
+            timestamp: new Date().toLocaleString("ms-MY"),
+            name: studentName,
+            className: studentClass,
+            score: score,
+            total: currentQuizQuestions.length,
+            percentage: percentage,
+            level: levelText
+        };
+
+        fetch(GOOGLE_SHEETS_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(resultData)
+        }).catch(error => console.error("Gagal menghantar keputusan:", error));
+    }
+
+    // Papar Keputusan Akhir
+    function showResults() {
+        clearInterval(timerInterval);
+        quizScreen.classList.remove('active');
+        resultScreen.classList.add('active');
+
+        const percentage = Math.round((score / currentQuizQuestions.length) * 100);
+
+        document.getElementById('res-name').textContent = studentName;
+        document.getElementById('res-class').textContent = studentClass;
+        document.getElementById('score-num').textContent = `${score}/${currentQuizQuestions.length}`;
+        document.getElementById('score-pct').textContent = `${percentage}%`;
+        document.getElementById('res-correct').textContent = score;
+
+        const rewardBadge = document.getElementById('reward-badge');
+        let badgeText = "";
+        let levelText = "";
+
+        if (percentage >= 80) {
+            badgeText = "Outstanding Performance! / Pencapaian Cemerlang! 🏆";
+            levelText = "Tahap Penguasaan 6 (Cemerlang Tertinggi / Excellent)";
+            rewardBadge.classList.add('show');
+            launchConfetti();
+            playSound('win');
+        } else if (percentage >= 50) {
+            badgeText = "Good Job! / Syabas & Baik! 👍";
+            levelText = "Tahap Penguasaan 4 (Memuaskan / Satisfactory)";
+            rewardBadge.classList.remove('show');
+        } else {
+            badgeText = "Keep Trying! / Usaha Lagi! 💪";
+            levelText = "Tahap Penguasaan 2 (Perlu Ulangkaji / Needs Improvement)";
+            rewardBadge.classList.remove('show');
+        }
+
+        document.getElementById('badge-title').textContent = badgeText;
+        document.getElementById('res-level').textContent = levelText;
+
+        // Hantar satu rekod sahaja selepas kuiz selesai.
+        sendResultToGoogleSheets(percentage, levelText);
+    }
+
+    // Cuba Lagi
+    function restartQuiz() {
+        resultScreen.classList.remove('active');
+        startScreen.classList.add('active');
+        inputName.value = '';
+        inputClass.value = '';
+        document.getElementById('reward-badge').classList.remove('show');
+    }
+</script>
+</body>
+</html>
